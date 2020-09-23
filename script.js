@@ -5,31 +5,22 @@ const countFieldSpan = document.querySelector(".count__result-number span");
 const btnClear = document.querySelector("#clear");
 const span = document.createElement("span");
 const colors = ["#392129", "#86534e", "#c9c2b2", "#d7c770", "#af323b"];
-const matrix = generateMatrix(colors.length, colors.length, );
+const matrix = generateMatrix(6, 6, getRandomColor);
 let countClick = 0;
 let countResult = 0;
 let result = 0;
 
+console.log(matrix);
+
 createTable(parent, 6, 6);
-initialPaintingTable(parent, colors);
-createButton(blockButtons, colors);
 
 const table = document.querySelector("table");
 const trs = table.querySelectorAll("tr");
 const countBlock = document.querySelector(".count");
 const buttons = document.querySelectorAll("button");
 
-// trs.forEach((tr, y) => {
-//   const row = [];
-//   const tds = tr.querySelectorAll("td");
-//   tds.forEach((td, x) => {
-//     const color = td.style.backgroundColor;
-//     row.push({ [color]: false });
-//   });
-//   matrix.push(row);
-// });
-
-
+createButton(blockButtons, colors);
+setView(matrix, trs)
 
 buttons.forEach((btn) => {
   btn.addEventListener("click", () => {
@@ -99,8 +90,12 @@ function getResultCount(res) {
   return res;
 }
 
-function getColor() {
-  return this.style.backgroundColor;
+function getColor(arr) {
+  return arr[getRandomIntInclusive(0, arr.length)];
+}
+
+function getRandomColor() {
+  return getColor(colors);
 }
 
 function createTable(parent, row, col) {
@@ -126,50 +121,30 @@ function createButton(parent, colorList) {
   }
 }
 
-function initialPaintingTable(table, arr) {
-  const trs = table.querySelectorAll("tr");
-  trs.forEach((tr, x) => {
-    tr.querySelectorAll("td").forEach((td) => {
-      td.style.backgroundColor =
-        arr[getRandomIntInclusive(0, colors.length - 1)];
-    });
-  });
-}
-
 function getRandomIntInclusive(min, max) {
   min = Math.ceil(min);
   max = Math.floor(max);
-  return Math.floor(Math.random() * (max - min + 1)) + min;
+  return Math.floor(Math.random() * (max - min )) + min;
 }
 
 function setView(arr, row) {
   row.forEach((tr, y) => {
     const tds = tr.querySelectorAll("td");
     tds.forEach((td, x) => {
-      td.style.backgroundColor = Object.keys(arr[y][x])[0];
+      td.style.backgroundColor = arr[y][x];
     });
   });
 }
 
-function generateMatrix (row, col, callBack) {
+function generateMatrix(rows, columns, callBack) {
   const matrix = [];
-  for (let y = 0; y < row; y++) {
-    for (let x = 0; x < col; x++) {
-      matrix[y][x] = callBack
+  for (let y = 0; y < rows; y++) {
+    const row = [];
+    for (let x = 0; x < columns; x++) {
+      const item = callBack();
+      row.push(item);
     }
+    matrix.push(row);
   }
-  return matrix
+  return matrix;
 }
-
-// function changeElement(arr, y, x, prevValue, cell, newColor, modY, modX) {
-//   if (
-//     arr[y] !== undefined &&
-//     arr[y][x] !== undefined &&
-//     Object.keys(cell)[0] === prevValue &&
-//     Object.keys(arr[y][x])[0] === newColor &&
-//     Object.values(arr[y][x])[0]
-//   ) {
-//     arr[modY][modX] = { [newColor]: true };
-//   }
-//   return arr;
-// }
