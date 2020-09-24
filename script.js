@@ -4,42 +4,69 @@ const countField = document.querySelector(".count__result-number");
 const countFieldSpan = document.querySelector(".count__result-number span");
 const btnClear = document.querySelector("#clear");
 const span = document.createElement("span");
-const colors = ["#392129", "#86534e", "#c9c2b2", "#d7c770", "#af323b"];
-const matrix = generateMatrix(6, 6, getRandomColor);
+const colors = ["rgb(57, 33, 41)", "rgb(134, 83, 78)", "rgb(201, 194, 178)", "rgb(215, 199, 112)", "rgb(175, 50, 59)"];
+let matrix = generateMatrix(6, 6, getRandomColor);
 let countClick = 0;
 let countResult = 0;
 let result = 0;
 
-console.log(matrix);
-
 createTable(parent, 6, 6);
+createButton(blockButtons, colors);
 
 const table = document.querySelector("table");
 const trs = table.querySelectorAll("tr");
 const countBlock = document.querySelector(".count");
 const buttons = document.querySelectorAll("button");
 
-createButton(blockButtons, colors);
-setView(matrix, trs)
+setView(matrix, trs);
+
+let mask = generateMatrix(matrix.length, matrix[0].length, () => false);
+    mask[0][0] = true;
 
 buttons.forEach((btn) => {
   btn.addEventListener("click", () => {
     countClick += 1;
-    const previous = Object.keys(matrix[0][0])[0];
-    const btnColor = btn.style.backgroundColor;
+    const currentColor = matrix[0][0];
+    const newColor = btn.style.backgroundColor;
+    matrix[0][0] = newColor;
+
+
+    const getFlag = (y, x) => {
+      try {
+        return mask[y][x];
+      } catch (err) {
+        return false;
+      }
+    };
+
+    let changed = true;
+    while (changed) {
+      changed = false;
+
+      matrix.forEach((row, y) => {
+        row.forEach((cell, x) => {
+          if (matrix[y][x] === currentColor && mask[y][x] === false) {
+            const flag =
+              getFlag(x + 1, y) ||
+              getFlag(x - 1, y) ||
+              getFlag(x, y - 1) ||
+              getFlag(x, y + 1);
+
+            if (flag) {
+              mask[y][x] = true;
+              changed = true;
+            }
+          }
+        });
+      });
+    }
+
     matrix.forEach((row, y) => {
       row.forEach((cell, x) => {
-        if (previous === btnColor) {
-          return;
-        }
-        if (y === 0 && x === 0) matrix[y][x] = { [btnColor]: true };
-        changeElement(matrix, y, x - 1, previous, cell, btnColor, y, x);
-        changeElement(matrix, y, x + 1, previous, cell, btnColor, y, x);
-        changeElement(matrix, y - 1, x, previous, cell, btnColor, y, x);
-        changeElement(matrix, y + 1, x, previous, cell, btnColor, y, x);
-        Object.values(matrix[y][x])[0] && (countResult += 1);
+        matrix[y][x] = mask[y][x] ? newColor : matrix[y][x];
       });
     });
+
     setView(matrix, trs);
     countFieldSpan.remove();
     countField.append(span);
@@ -55,17 +82,11 @@ buttons.forEach((btn) => {
 
 btnClear.addEventListener("click", () => {
   btnClear.classList.add("hide");
-  initialPaintingTable(parent, colors);
   matrix.splice(0);
-  trs.forEach((tr, y) => {
-    const row = [];
-    const tds = tr.querySelectorAll("td");
-    tds.forEach((td, x) => {
-      const color = td.style.backgroundColor;
-      row.push({ [color]: false });
-    });
-    matrix.push(row);
-  });
+  matrix = generateMatrix(6, 6, getRandomColor);
+  mask = generateMatrix(matrix.length, matrix[0].length, () => false);
+    mask[0][0] = true;
+  setView(matrix, trs);
   countClick = 0;
   result = 0;
   countFieldSpan.remove();
@@ -124,7 +145,7 @@ function createButton(parent, colorList) {
 function getRandomIntInclusive(min, max) {
   min = Math.ceil(min);
   max = Math.floor(max);
-  return Math.floor(Math.random() * (max - min )) + min;
+  return Math.floor(Math.random() * (max - min)) + min;
 }
 
 function setView(arr, row) {
