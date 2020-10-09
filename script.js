@@ -4,7 +4,13 @@ const countField = document.querySelector(".count__result-number");
 const countFieldSpan = document.querySelector(".count__result-number span");
 const btnClear = document.querySelector("#clear");
 const span = document.createElement("span");
-const colors = ["rgb(57, 33, 41)", "rgb(134, 83, 78)", "rgb(201, 194, 178)", "rgb(215, 199, 112)", "rgb(175, 50, 59)"];
+const colors = [
+  "rgb(57, 33, 41)",
+  "rgb(134, 83, 78)",
+  "rgb(201, 194, 178)",
+  "rgb(215, 199, 112)",
+  "rgb(175, 50, 59)",
+];
 let matrix = generateMatrix(6, 6, getRandomColor);
 let countClick = 0;
 let countResult = 0;
@@ -21,81 +27,66 @@ const buttons = document.querySelectorAll("button");
 setView(matrix, trs);
 
 let mask = generateMatrix(matrix.length, matrix[0].length, () => false);
-    mask[0][0] = true;
+mask[0][0] = true;
 
 buttons.forEach((btn) => {
-  btn.addEventListener("click", () => {
-    countClick += 1;
-    const currentColor = matrix[0][0];
-    const newColor = btn.style.backgroundColor;
-    matrix[0][0] = newColor;
+  btn.addEventListener("click", changeCellColor);
+});
 
+btnClear.addEventListener("click", resetGame);
 
-    const getFlag = (y, x) => {
-      try {
-        return mask[y][x];
-      } catch (err) {
-        return false;
-      }
-    };
-
-    let changed = true;
-    while (changed) {
-      changed = false;
-
-      matrix.forEach((row, y) => {
-        row.forEach((cell, x) => {
-          if (matrix[y][x] === currentColor && mask[y][x] === false) {
-            const flag =
-              getFlag(x + 1, y) ||
-              getFlag(x - 1, y) ||
-              getFlag(x, y - 1) ||
-              getFlag(x, y + 1);
-
-            if (flag) {
-              mask[y][x] = true;
-              changed = true;
-            }
-          }
-        });
-      });
+function changeCellColor(e) {
+  countClick += 1;
+  const currentColor = matrix[0][0];
+  const newColor = e.target.style.backgroundColor;
+  matrix[0][0] = newColor;
+  const getFlag = (y, x) => {
+    try {
+      return mask[y][x];
+    } catch (err) {
+      return false;
     }
+  };
+
+  let changed = true;
+  while (changed) {
+    changed = false;
 
     matrix.forEach((row, y) => {
       row.forEach((cell, x) => {
-        matrix[y][x] = mask[y][x] ? newColor : matrix[y][x];
+        if (matrix[y][x] === currentColor && mask[y][x] === false) {
+          const flag =
+            getFlag(x + 1, y) ||
+            getFlag(x - 1, y) ||
+            getFlag(x, y - 1) ||
+            getFlag(x, y + 1);
+
+          if (flag) {
+            mask[y][x] = true;
+            changed = true;
+          }
+        }
       });
     });
+  }
 
-    setView(matrix, trs);
-    countFieldSpan.remove();
-    countField.append(span);
-    span.textContent = countClick;
-    if (getResultCount(result) === 35) {
-      buttons.forEach(
-        (btn) => btn.classList.contains("color") && (btn.disabled = true)
-      );
-      btnClear.classList.remove("hide");
-    }
+  matrix.forEach((row, y) => {
+    row.forEach((cell, x) => {
+      matrix[y][x] = mask[y][x] ? newColor : matrix[y][x];
+    });
   });
-});
 
-btnClear.addEventListener("click", () => {
-  btnClear.classList.add("hide");
-  matrix.splice(0);
-  matrix = generateMatrix(6, 6, getRandomColor);
-  mask = generateMatrix(matrix.length, matrix[0].length, () => false);
-    mask[0][0] = true;
   setView(matrix, trs);
-  countClick = 0;
-  result = 0;
   countFieldSpan.remove();
   countField.append(span);
   span.textContent = countClick;
-  buttons.forEach(
-    (btn) => btn.classList.contains("color") && (btn.disabled = false)
-  );
-});
+  if (getResultCount(result) === 35) {
+    buttons.forEach(
+      (btn) => btn.classList.contains("color") && (btn.disabled = true)
+    );
+    btnClear.classList.remove("hide");
+  }
+}
 
 function getResultCount(res) {
   let previous, current;
@@ -168,4 +159,21 @@ function generateMatrix(rows, columns, callBack) {
     matrix.push(row);
   }
   return matrix;
+}
+
+function resetGame() {
+  btnClear.classList.add("hide");
+  matrix.splice(0);
+  matrix = generateMatrix(6, 6, getRandomColor);
+  mask = generateMatrix(matrix.length, matrix[0].length, () => false);
+  mask[0][0] = true;
+  setView(matrix, trs);
+  countClick = 0;
+  result = 0;
+  countFieldSpan.remove();
+  countField.append(span);
+  span.textContent = countClick;
+  buttons.forEach(
+    (btn) => btn.classList.contains("color") && (btn.disabled = false)
+  );
 }
